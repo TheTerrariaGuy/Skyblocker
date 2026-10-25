@@ -1,5 +1,7 @@
 package de.hysky.skyblocker.skyblock.garden;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +31,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Rotations;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.LightCoordsUtil;
@@ -38,6 +41,7 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.SkullBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -69,6 +73,7 @@ public class GreenhousePaste {
 	private static final float PREVIEW_ALPHA = 0.6f;
 	private static final float PREVIEW_TINT = 0.4f;
 	private static final long BLOCK_CHANGE_RATE_LIMIT_MS = 150;
+	private static final int CACTUS_CROP_ID = 45;
 	/*
 		For normal greenhouse, the grid is 10x10. Each cell can be empty (0) or contain a crop (1-40).
 		For target greenhouse, the grid is also 10x10. Each cell can be ignored (-1) or empty (0) contain a crop (1-40).
@@ -376,11 +381,23 @@ public class GreenhousePaste {
 				pos.getX() + 1, pos.getY() + 6, pos.getZ() + 1
 		);
 
-		// Determine crop ID based on the name of armor stand, should also detect non head crops
+		List<CropArmorStand> armorStands = new ArrayList<>();
 		for (Entity entity : CLIENT.level.getEntities(null, detectionBox)) {
 			if (!(entity instanceof ArmorStand armorStand)) continue;
 
 			ItemStack head = armorStand.getItemBySlot(EquipmentSlot.HEAD);
+			Rotations headPose = armorStand.getHeadPose();
+			armorStands.add(new CropArmorStand(head, headPose));
+		}
+		return getCropId(armorStands, CLIENT.level.getBlockState(pos.above()));
+	}
+	// To handle cactus specifically, since new cactus is head only and old ones overhang with same-name head (but different rotation)
+	record CropArmorStand(ItemStack head, Rotations headPose) {}
+
+	static int getCropId(Iterable<CropArmorStand> armorStands, BlockState state) {
+		// Determine crop ID based on the name of armor stand, should also detect non head crops
+		for (CropArmorStand armorStand : armorStands) {
+			ItemStack head = armorStand.head();
 			if (head.isEmpty()) continue;
 
 			Component nameComponent = head.getHoverName();
@@ -390,6 +407,9 @@ public class GreenhousePaste {
 
 			for (GreenhouseCrops.Crop crop : GreenhouseCrops.CROP_ID_MAP.values()) {
 				if (name.contains(crop.armorStandName())) {
+					// Skip if overhanging cactus
+					Rotations headPose = armorStand.headPose();
+					if (crop.id() == CACTUS_CROP_ID && !(headPose.x() == 0.0f && headPose.y() == 0.0f && headPose.z() == 0.0f)) continue;
 					return crop.id();
 				}
 			}
@@ -405,8 +425,8 @@ public class GreenhousePaste {
 			return cropByTexture.id();
 		}
 
-		// If no armor stand found, fallback to checking block type (for non-head crops)
-		BlockState state = CLIENT.level.getBlockState(pos.above());
+		// If no armor stand matched, fall back to physical cactus (WILL HAPPEN, not technically a "fallback") and non-head crops
+		if (state.is(Blocks.CACTUS)) return CACTUS_CROP_ID;
 		Block block = state.getBlock();
 		for (GreenhouseCrops.Crop crop : GreenhouseCrops.CROP_ID_MAP.values()) {
 			if (!crop.isHead() && crop.cropBlock().equals(block)) {
