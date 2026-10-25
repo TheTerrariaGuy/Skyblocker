@@ -339,6 +339,7 @@ public class HelperCategory {
 						.option(Option.<Boolean>createBuilder()
 								.name(Component.translatable("skyblocker.config.helpers.fairySouls.highlightOnBingo"))
 								.description(Component.translatable("skyblocker.config.helpers.fairySouls.highlightOnBingo.@Tooltip"))
+								.tags(CommonTags.ADDED_IN_6_10_0)
 								.binding(defaults.helpers.fairySouls.highlightOnBingo,
 										() -> config.helpers.fairySouls.highlightOnBingo,
 										newValue -> config.helpers.fairySouls.highlightOnBingo = newValue)
@@ -473,6 +474,15 @@ public class HelperCategory {
 								.binding(defaults.helpers.bazaar.enableOrderTracker,
 										() -> config.helpers.bazaar.enableOrderTracker,
 										newValue -> config.helpers.bazaar.enableOrderTracker = newValue)
+								.controller(ConfigUtils.createBooleanController())
+								.build())
+						.option(Option.<Boolean>createBuilder()
+								.name(Component.translatable("skyblocker.config.helpers.bazaar.enableBazaarMax"))
+								.description(Component.translatable("skyblocker.config.helpers.bazaar.enableBazaarMax.@Tooltip"))
+								.tags(CommonTags.ADDED_IN_6_11_0)
+								.binding(defaults.helpers.bazaar.enableBazaarMax,
+										() -> config.helpers.bazaar.enableBazaarMax,
+										newValue -> config.helpers.bazaar.enableBazaarMax = newValue)
 								.controller(ConfigUtils.createBooleanController())
 								.build())
 						.option(Option.<Boolean>createBuilder()

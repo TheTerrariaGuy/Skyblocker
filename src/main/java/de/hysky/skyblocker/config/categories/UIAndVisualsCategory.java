@@ -32,6 +32,7 @@ import de.hysky.skyblocker.config.ConfigUtils;
 import de.hysky.skyblocker.config.SkyblockerConfig;
 import de.hysky.skyblocker.config.configs.UIAndVisualsConfig;
 import de.hysky.skyblocker.skyblock.GyroOverlay;
+import de.hysky.skyblocker.skyblock.fancybars.FancyStatusBars;
 import de.hysky.skyblocker.skyblock.fancybars.StatusBarsConfigScreen;
 import de.hysky.skyblocker.skyblock.item.ValueBreakdownPopup;
 import de.hysky.skyblocker.skyblock.item.slottext.SlotTextManager;
@@ -390,7 +391,7 @@ public class UIAndVisualsCategory {
 						.option(ButtonOption.createBuilder()
 								.name(Component.translatable("skyblocker.config.uiAndVisuals.tabHud.configScreen"))
 								.description(Component.translatable("skyblocker.config.uiAndVisuals.tabHud.configScreen.@Tooltip"))
-								.tags(ArrayUtils.add(WidgetManager.WIDGET_INSTANCES.values().stream().map(w -> w.getInformation().displayName()).toArray(Component[]::new), Component.translatable("skyblocker.config.uiAndVisuals.tabHud.configScreen.@Tag")))
+								.tags(ArrayUtils.addAll(WidgetManager.WIDGET_INSTANCES.values().stream().map(w -> w.getInformation().displayName()).toArray(Component[]::new), Component.translatable("skyblocker.config.uiAndVisuals.tabHud.configScreen.@Tag"), CommonTags.ADDED_IN_6_10_0))
 								.prompt(Component.translatable("text.skyblocker.open"))
 								.action(_ -> Minecraft.getInstance().gui.setScreen(new WidgetsConfigurationScreen()))
 								.build())
@@ -540,7 +541,7 @@ public class UIAndVisualsCategory {
 						.option(ButtonOption.createBuilder()
 								.name(Component.translatable("skyblocker.config.uiAndVisuals.bars.openScreen"))
 								.prompt(Component.translatable("text.skyblocker.open"))
-								.action(_ -> Minecraft.getInstance().gui.setScreen(new StatusBarsConfigScreen()))
+								.action(_ -> Minecraft.getInstance().gui.setScreen(new StatusBarsConfigScreen(FancyStatusBars.INSTANCE)))
 								.build())
 						.option(Option.<UIAndVisualsConfig.IntelligenceDisplay>createBuilder()
 								.name(Component.translatable("skyblocker.config.uiAndVisuals.bars.intelligenceDisplay"))
@@ -675,6 +676,15 @@ public class UIAndVisualsCategory {
 											TeleportOverlay.configCallback(newValue);
 										})
 								.controller(ColourController.createBuilder().hasAlpha(true).build())
+								.build())
+						.option(Option.<UIAndVisualsConfig.TeleportOverlay.HighlightType>createBuilder()
+								.name(Component.translatable("skyblocker.config.uiAndVisuals.teleportOverlay.highlightType"))
+								.description(Component.translatable("skyblocker.config.uiAndVisuals.teleportOverlay.highlightType.@Tooltip"))
+								.tags(CommonTags.ADDED_IN_6_11_0)
+								.binding(defaults.uiAndVisuals.teleportOverlay.highlightType,
+										() -> config.uiAndVisuals.teleportOverlay.highlightType,
+										newValue -> config.uiAndVisuals.teleportOverlay.highlightType = newValue)
+								.controller(ConfigUtils.createEnumController())
 								.build())
 						.option(Option.<Boolean>createBuilder()
 								.name(Component.translatable("skyblocker.config.uiAndVisuals.teleportOverlay.enableWeirdTransmission"))
