@@ -438,6 +438,8 @@ public class GreenhousePaste {
 	}
 
 	private static void adjustForSpecialCrops() {
+		if (greenhouseCorner == null || CLIENT.level == null) return;
+
 		// Special handling for Plantboy (2x2 crop)
 		int[][] before = new int[10][10]; // To avoid recursive addition of all cells
 
@@ -455,8 +457,7 @@ public class GreenhousePaste {
 	}
 
 	private static void adjustForPlantBoy(int x, int z, int[][] before) {
-		Objects.requireNonNull(greenhouseCorner);
-		Objects.requireNonNull(CLIENT.level);
+		if (greenhouseCorner == null || CLIENT.level == null) return;
 		if (before[x][z] != 26) return;
 
 		BlockPos pos = greenhouseCorner.offset(x, 0, z);
@@ -489,10 +490,14 @@ public class GreenhousePaste {
 				(int) Math.floor(foundArmorStand.getY()),
 				(int) Math.floor(foundArmorStand.getZ() - 0.2)
 		);
-		greenhouse[bottomLeft.getX() - greenhouseCorner.getX()][bottomLeft.getZ() - greenhouseCorner.getZ()] = 26;
-		greenhouse[bottomLeft.getX() - greenhouseCorner.getX() + 1][bottomLeft.getZ() - greenhouseCorner.getZ()] = 26;
-		greenhouse[bottomLeft.getX() - greenhouseCorner.getX()][bottomLeft.getZ() - greenhouseCorner.getZ() + 1] = 26;
-		greenhouse[bottomLeft.getX() - greenhouseCorner.getX() + 1][bottomLeft.getZ() - greenhouseCorner.getZ() + 1] = 26;
+		int gx = bottomLeft.getX() - greenhouseCorner.getX();
+		int gz = bottomLeft.getZ() - greenhouseCorner.getZ();
+		if (gx < 0 || gx >= 9 || gz < 0 || gz >= 9) return;
+
+		greenhouse[gx][gz] = 26;
+		greenhouse[gx + 1][gz] = 26;
+		greenhouse[gx][gz + 1] = 26;
+		greenhouse[gx + 1][gz + 1] = 26;
 	}
 
 	private static void adjustForSnoozling(int x, int z, int[][] before) {
@@ -575,19 +580,19 @@ public class GreenhousePaste {
 
 	private static void adjustForGodseed(int x, int z, int[][] before) {
 		if (before[x][z] != 37) return;
-		try { // 3x3 Ring
-			greenhouse[x-1][z] = 37;
-			greenhouse[x+1][z] = 37;
+		if (x < 1 || x >= 9 || z < 1 || z >= 9) return;
 
-			greenhouse[x-1][z-1] = 37;
-			greenhouse[x][z-1] = 37;
-			greenhouse[x+1][z-1] = 37;
+		// 3x3 Ring
+		greenhouse[x-1][z] = 37;
+		greenhouse[x+1][z] = 37;
 
-			greenhouse[x-1][z+1] = 37;
-			greenhouse[x][z+1] = 37;
-			greenhouse[x+1][z+1] = 37;
-		}
-		catch (ArrayIndexOutOfBoundsException _) { }
+		greenhouse[x-1][z-1] = 37;
+		greenhouse[x][z-1] = 37;
+		greenhouse[x+1][z-1] = 37;
+
+		greenhouse[x-1][z+1] = 37;
+		greenhouse[x][z+1] = 37;
+		greenhouse[x+1][z+1] = 37;
 	}
 
 	/**
